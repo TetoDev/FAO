@@ -15,11 +15,11 @@ class CaptoGeneratorApp:
         self.e_var = tk.DoubleVar(value=2.0)
         self.nb_pt_var = tk.IntVar(value=1000)
         
-        # Tolérances (Étape 4)
+        # tolérances
         self.corde_var = tk.DoubleVar(value=0.01) # intol en mm
         self.tol_ang_var = tk.DoubleVar(value=2.0) # delta en degrés
         
-        # Paramètres 3D
+        # param. 3D
         self.angle_var = tk.DoubleVar(value=5.0) # Dépouille
         self.longueur_var = tk.DoubleVar(value=50.0)
 
@@ -51,7 +51,6 @@ class CaptoGeneratorApp:
         e3 = tk.Entry(profil_frame, textvariable=self.nb_pt_var, width=10)
         e3.grid(row=2, column=1); bind_enter(e3)
 
-        # ================= Filtrage (Étape 4) =================
         filtre_frame = tk.LabelFrame(left_frame, text="Filtrage (Étape 4)", padx=10, pady=5)
         filtre_frame.pack(fill=tk.X, pady=(0, 5))
 
@@ -63,7 +62,6 @@ class CaptoGeneratorApp:
         e5 = tk.Entry(filtre_frame, textvariable=self.tol_ang_var, width=10)
         e5.grid(row=1, column=1); bind_enter(e5)
 
-        # ================= Paramètres 3D =================
         z_frame = tk.LabelFrame(left_frame, text="Paramètres 3D", padx=10, pady=5)
         z_frame.pack(fill=tk.X, pady=(0, 5))
 
@@ -75,12 +73,10 @@ class CaptoGeneratorApp:
         e7 = tk.Entry(z_frame, textvariable=self.longueur_var, width=10)
         e7.grid(row=1, column=1); bind_enter(e7)
 
-        # ================= Actions =================
         action_frame = tk.Frame(left_frame, pady=5)
         action_frame.pack(fill=tk.X)
 
         tk.Label(action_frame, text="Cote Z (Visu):").grid(row=0, column=0, sticky="w")
-        # Le scale met à jour la visu en temps réel
         self.z_scale = tk.Scale(action_frame, variable=self.z_visu_var, from_=0, to=-self.longueur_var.get(), 
                                 resolution=0.1, orient=tk.HORIZONTAL, command=lambda val: self.update_data())
         self.z_scale.grid(row=0, column=1, sticky="ew")
@@ -88,7 +84,6 @@ class CaptoGeneratorApp:
         tk.Button(action_frame, text="Actualiser Visu", command=self.update_data, bg="#2196F3", fg="white").grid(row=1, columnspan=2, pady=5, sticky="we")
         tk.Button(action_frame, text="Générer ASCII (Étapes 3 & 4)", command=self.generer_fichier, bg="#FF9800", fg="white", font=("Arial", 10, "bold")).grid(row=2, columnspan=2, pady=10, sticky="we")
 
-        # ================= Tableau =================
         table_frame = tk.LabelFrame(left_frame, text="Coordonnées (Points Filtrés)")
         table_frame.pack(fill=tk.BOTH, expand=True)
         
@@ -105,7 +100,6 @@ class CaptoGeneratorApp:
         scroll_y.pack(side="right", fill="y")
         self.tree.pack(side="left", fill="both", expand=True)
 
-        # ================= Graphe =================
         self.plot_frame = tk.Frame(self.root)
         self.plot_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
@@ -120,27 +114,23 @@ class CaptoGeneratorApp:
         nb_pt = self.nb_pt_var.get()
         angle_depouille = np.radians(self.angle_var.get())
 
-        # CORRECTION : Le diamètre s'agrandit avec l'augmentation de |Z|
-        d1_z = d1 + 2 * abs(target_z) * np.tan(angle_depouille)
+        d1_z = d1 + 2 * abs(target_z) * np.tan(angle_depouille) #diametre qui va augmenter
         e_z = e * (d1_z / d1)
 
         a = np.linspace(0, 2 * np.pi, nb_pt)
 
-        # Equations mathématiques du profil
+        # équations du profil
         x = (d1_z / 2 - e_z * np.cos(3 * a)) * np.cos(a) - 3 * e_z * np.sin(3 * a) * np.sin(a)
         y = (d1_z / 2 - e_z * np.cos(3 * a)) * np.sin(a) + 3 * e_z * np.sin(3 * a) * np.cos(a)
         z = np.full_like(x, target_z)
 
-        # CORRECTION : Utilisation de np.gradient pour obtenir des tangentes de haute précision
-        dx = np.gradient(x)
+        dx = np.gradient(x) #tangentes 
         dy = np.gradient(y)
         norm_2d = np.hypot(dx, dy)
         
-        # Normales 2D pointant vers l'extérieur
-        nx_2d = dy / norm_2d
+        nx_2d = dy / norm_2d #normales 2D
         ny_2d = -dx / norm_2d
 
-        # Étape 2 : Normales 3D incluant la dépouille
         nx_3d = nx_2d * np.cos(angle_depouille)
         ny_3d = ny_2d * np.cos(angle_depouille)
         nz_3d = np.full_like(nx_2d, np.sin(angle_depouille))
@@ -148,7 +138,7 @@ class CaptoGeneratorApp:
         return x, y, z, nx_3d, ny_3d, nz_3d
 
     def filter_profile(self, x, y, nx, ny, nz):
-        """Étape 4 : Filtre vectorisé selon l'erreur de corde et l'angle."""
+        """Filtre vectorisé selon l'erreur de corde et l'angle."""
         intol = self.corde_var.get()
         delta_rad = np.radians(self.tol_ang_var.get())
         
@@ -160,15 +150,13 @@ class CaptoGeneratorApp:
             best_valid = curr + 1
             next_idx = curr + 1
             
-            while next_idx < N:
-                # 1. Vérification angulaire
+            while next_idx < N: # vérifs angulaires
                 dot_prod = np.clip(nx[curr]*nx[next_idx] + ny[curr]*ny[next_idx] + nz[curr]*nz[next_idx], -1.0, 1.0)
                 angle_diff = np.arccos(dot_prod)
                 
                 if angle_diff > delta_rad:
                     break
                 
-                # 2. Vérification de l'erreur de corde (Vectorisée pour la performance et la précision)
                 x1, y1 = x[curr], y[curr]
                 x2, y2 = x[next_idx], y[next_idx]
                 dist_seg = np.hypot(x2 - x1, y2 - y1)
@@ -188,7 +176,6 @@ class CaptoGeneratorApp:
             curr = best_valid
             kept_indices.append(curr)
             
-        # Forcer la fermeture exacte sur le dernier point
         if kept_indices[-1] != N - 1:
             kept_indices.append(N - 1)
             
@@ -196,13 +183,12 @@ class CaptoGeneratorApp:
 
     def update_data(self):
         try:
-            # Ajuster les limites du Scale si l'utilisateur change la longueur
             self.z_scale.configure(to=-self.longueur_var.get())
             
             target_z = self.z_visu_var.get()
             x, y, z, nx, ny, nz = self.calculate_profile(target_z)
             
-            # Application de l'étape 4 pour la visualisation
+            # Visu étape 4
             kept_indices = self.filter_profile(x, y, nx, ny, nz)
             
             x_f = x[kept_indices]
@@ -211,12 +197,11 @@ class CaptoGeneratorApp:
             ny_f = ny[kept_indices]
             nz_f = nz[kept_indices]
 
-            # Mise à jour graphique
+            # Maj graphique
             self.ax.clear()
             self.ax.plot(x, y, color='lightgray', linestyle='--', label=f"Points d'origine ({len(x)})")
             self.ax.plot(x_f, y_f, 'b-o', markersize=3, label=f"Profil filtré ({len(x_f)} pts)")
             
-            # Affichage allégé des normales
             self.ax.quiver(x_f, y_f, nx_f, ny_f, color='r', alpha=0.6, scale=15, label='Normales 3D (X,Y)')
 
             self.ax.plot(x_f[0], y_f[0], 'go', markersize=8, label="Point de départ")
@@ -226,7 +211,7 @@ class CaptoGeneratorApp:
             self.ax.legend(loc="upper right", fontsize="small")
             self.canvas.draw()
 
-            # Mise à jour du tableau
+            # Maj tableau
             self.tree.delete(*self.tree.get_children())
             for i, idx in enumerate(kept_indices):
                 row = (i, f"{x_f[i]:.4f}", f"{y_f[i]:.4f}", f"{z[idx]:.4f}", f"{nx_f[i]:.4f}", f"{ny_f[i]:.4f}", f"{nz_f[i]:.4f}")
@@ -237,7 +222,7 @@ class CaptoGeneratorApp:
 
     def generer_fichier(self):
         longueur = self.longueur_var.get()
-        # Génération des 11 profils répartis uniformément de 0 à -h
+        # Génération des 11 profils tous les paliers de 5
         z_levels = np.linspace(0, -longueur, 11)
         filename = "profils_capto_filtres.ascii"
         
@@ -249,7 +234,7 @@ class CaptoGeneratorApp:
                     kept = self.filter_profile(x, y, nx, ny, nz)
                     
                     for idx in kept:
-                        # Format X Y Z Nx Ny Nz
+                        # Format X Y Z Nx Ny Nz pour le ASCII à verifier si ca marche
                         f.write(f"{x[idx]:.6f} {y[idx]:.6f} {z[idx]:.6f} {nx[idx]:.6f} {ny[idx]:.6f} {nz[idx]:.6f}\n")
                         total_points += 1
             
@@ -261,3 +246,5 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = CaptoGeneratorApp(root)
     root.mainloop()
+
+#pas mal pas mal le programme mon ptit Octavio
