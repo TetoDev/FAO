@@ -32,50 +32,63 @@ class CaptoGeneratorApp:
         left_frame = tk.Frame(self.root, padx=10, pady=10)
         left_frame.pack(side=tk.LEFT, fill=tk.Y)
 
-        # Les paramètres du profil
+        def bind_enter(widget):
+            widget.bind("<Return>", lambda event: self.update_data())
+
+        # ================= Paramètres 2D =================
         profil_frame = tk.LabelFrame(left_frame, text="Paramètres 2D", padx=10, pady=5)
         profil_frame.pack(fill=tk.X, pady=(0, 5))
 
         tk.Label(profil_frame, text="d1 (mm):").grid(row=0, column=0, sticky="w")
-        tk.Entry(profil_frame, textvariable=self.d1_var, width=10).grid(row=0, column=1)
+        e1 = tk.Entry(profil_frame, textvariable=self.d1_var, width=10)
+        e1.grid(row=0, column=1); bind_enter(e1)
 
         tk.Label(profil_frame, text="e:").grid(row=1, column=0, sticky="w")
-        tk.Entry(profil_frame, textvariable=self.e_var, width=10).grid(row=1, column=1)
+        e2 = tk.Entry(profil_frame, textvariable=self.e_var, width=10)
+        e2.grid(row=1, column=1); bind_enter(e2)
 
         tk.Label(profil_frame, text="Points initiaux:").grid(row=2, column=0, sticky="w")
-        tk.Entry(profil_frame, textvariable=self.nb_pt_var, width=10).grid(row=2, column=1)
+        e3 = tk.Entry(profil_frame, textvariable=self.nb_pt_var, width=10)
+        e3.grid(row=2, column=1); bind_enter(e3)
 
-        # Les paramètres de filtrage (Étape 4)
+        # ================= Filtrage (Étape 4) =================
         filtre_frame = tk.LabelFrame(left_frame, text="Filtrage (Étape 4)", padx=10, pady=5)
         filtre_frame.pack(fill=tk.X, pady=(0, 5))
 
         tk.Label(filtre_frame, text="Tol. Corde (mm):").grid(row=0, column=0, sticky="w")
-        tk.Entry(filtre_frame, textvariable=self.corde_var, width=10).grid(row=0, column=1)
+        e4 = tk.Entry(filtre_frame, textvariable=self.corde_var, width=10)
+        e4.grid(row=0, column=1); bind_enter(e4)
 
         tk.Label(filtre_frame, text="Tol. Angle (°):").grid(row=1, column=0, sticky="w")
-        tk.Entry(filtre_frame, textvariable=self.tol_ang_var, width=10).grid(row=1, column=1)
+        e5 = tk.Entry(filtre_frame, textvariable=self.tol_ang_var, width=10)
+        e5.grid(row=1, column=1); bind_enter(e5)
 
-        # Les paramètres 3D
+        # ================= Paramètres 3D =================
         z_frame = tk.LabelFrame(left_frame, text="Paramètres 3D", padx=10, pady=5)
         z_frame.pack(fill=tk.X, pady=(0, 5))
 
         tk.Label(z_frame, text="Angle Dépouille (°):").grid(row=0, column=0, sticky="w")
-        tk.Entry(z_frame, textvariable=self.angle_var, width=10).grid(row=0, column=1)
+        e6 = tk.Entry(z_frame, textvariable=self.angle_var, width=10)
+        e6.grid(row=0, column=1); bind_enter(e6)
 
         tk.Label(z_frame, text="Longueur h (mm):").grid(row=1, column=0, sticky="w")
-        tk.Entry(z_frame, textvariable=self.longueur_var, width=10).grid(row=1, column=1)
+        e7 = tk.Entry(z_frame, textvariable=self.longueur_var, width=10)
+        e7.grid(row=1, column=1); bind_enter(e7)
 
+        # ================= Actions =================
         action_frame = tk.Frame(left_frame, pady=5)
         action_frame.pack(fill=tk.X)
 
         tk.Label(action_frame, text="Cote Z (Visu):").grid(row=0, column=0, sticky="w")
-        tk.Scale(action_frame, variable=self.z_visu_var, from_=0, to=-50, resolution=0.1, orient=tk.HORIZONTAL, command=lambda val: self.update_data()).grid(row=0, column=1, sticky="ew")
+        # Le scale met à jour la visu en temps réel
+        self.z_scale = tk.Scale(action_frame, variable=self.z_visu_var, from_=0, to=-self.longueur_var.get(), 
+                                resolution=0.1, orient=tk.HORIZONTAL, command=lambda val: self.update_data())
+        self.z_scale.grid(row=0, column=1, sticky="ew")
 
         tk.Button(action_frame, text="Actualiser Visu", command=self.update_data, bg="#2196F3", fg="white").grid(row=1, columnspan=2, pady=5, sticky="we")
-        
         tk.Button(action_frame, text="Générer ASCII (Étapes 3 & 4)", command=self.generer_fichier, bg="#FF9800", fg="white", font=("Arial", 10, "bold")).grid(row=2, columnspan=2, pady=10, sticky="we")
 
-        # Le tableau des points filtrés
+        # ================= Tableau =================
         table_frame = tk.LabelFrame(left_frame, text="Coordonnées (Points Filtrés)")
         table_frame.pack(fill=tk.BOTH, expand=True)
         
@@ -92,7 +105,7 @@ class CaptoGeneratorApp:
         scroll_y.pack(side="right", fill="y")
         self.tree.pack(side="left", fill="both", expand=True)
 
-        # La zone de visu
+        # ================= Graphe =================
         self.plot_frame = tk.Frame(self.root)
         self.plot_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
@@ -107,31 +120,27 @@ class CaptoGeneratorApp:
         nb_pt = self.nb_pt_var.get()
         angle_depouille = np.radians(self.angle_var.get())
 
-        # Dépouille : le diamètre varie avec Z
-        d1_z = d1 - 2 * abs(target_z) * np.tan(angle_depouille)
+        # CORRECTION : Le diamètre s'agrandit avec l'augmentation de |Z|
+        d1_z = d1 + 2 * abs(target_z) * np.tan(angle_depouille)
         e_z = e * (d1_z / d1)
 
         a = np.linspace(0, 2 * np.pi, nb_pt)
 
-        # Equations du profil polygonal
+        # Equations mathématiques du profil
         x = (d1_z / 2 - e_z * np.cos(3 * a)) * np.cos(a) - 3 * e_z * np.sin(3 * a) * np.sin(a)
         y = (d1_z / 2 - e_z * np.cos(3 * a)) * np.sin(a) + 3 * e_z * np.sin(3 * a) * np.cos(a)
         z = np.full_like(x, target_z)
 
-        # Tangentes
-        x_next, y_next = np.roll(x, -1), np.roll(y, -1)
-        x_prev, y_prev = np.roll(x, 1), np.roll(y, 1)
-        tx = x_next - x_prev
-        ty = y_next - y_prev
+        # CORRECTION : Utilisation de np.gradient pour obtenir des tangentes de haute précision
+        dx = np.gradient(x)
+        dy = np.gradient(y)
+        norm_2d = np.hypot(dx, dy)
         
-        norm_t = np.sqrt(tx**2 + ty**2)
-        tx, ty = tx / norm_t, ty / norm_t
-
-        # Normales 2D
-        nx_2d, ny_2d = ty, -tx
+        # Normales 2D pointant vers l'extérieur
+        nx_2d = dy / norm_2d
+        ny_2d = -dx / norm_2d
 
         # Étape 2 : Normales 3D incluant la dépouille
-        # La normale pointe vers l'extérieur et est inclinée par rapport à Z
         nx_3d = nx_2d * np.cos(angle_depouille)
         ny_3d = ny_2d * np.cos(angle_depouille)
         nz_3d = np.full_like(nx_2d, np.sin(angle_depouille))
@@ -139,7 +148,7 @@ class CaptoGeneratorApp:
         return x, y, z, nx_3d, ny_3d, nz_3d
 
     def filter_profile(self, x, y, nx, ny, nz):
-        """Étape 4 : Filtre le profil selon l'erreur de corde et l'angle."""
+        """Étape 4 : Filtre vectorisé selon l'erreur de corde et l'angle."""
         intol = self.corde_var.get()
         delta_rad = np.radians(self.tol_ang_var.get())
         
@@ -153,44 +162,33 @@ class CaptoGeneratorApp:
             
             while next_idx < N:
                 # 1. Vérification angulaire
-                dot_prod = nx[curr]*nx[next_idx] + ny[curr]*ny[next_idx] + nz[curr]*nz[next_idx]
-                dot_prod = np.clip(dot_prod, -1.0, 1.0)
+                dot_prod = np.clip(nx[curr]*nx[next_idx] + ny[curr]*ny[next_idx] + nz[curr]*nz[next_idx], -1.0, 1.0)
                 angle_diff = np.arccos(dot_prod)
                 
                 if angle_diff > delta_rad:
                     break
                 
-                # 2. Vérification de l'erreur de corde
+                # 2. Vérification de l'erreur de corde (Vectorisée pour la performance et la précision)
                 x1, y1 = x[curr], y[curr]
                 x2, y2 = x[next_idx], y[next_idx]
                 dist_seg = np.hypot(x2 - x1, y2 - y1)
                 
-                valid_chord = True
-                if dist_seg > 1e-6:
-                    for k in range(curr + 1, next_idx):
-                        x0, y0 = x[k], y[k]
-                        # Distance point à segment en 2D (valide car Z est constant sur un profil)
-                        d = abs((x2 - x1)*(y1 - y0) - (x1 - x0)*(y2 - y1)) / dist_seg
-                        if d > intol:
-                            valid_chord = False
-                            break
-                            
-                if not valid_chord:
-                    break
+                if dist_seg > 1e-8 and next_idx > curr + 1:
+                    xk = x[curr+1:next_idx]
+                    yk = y[curr+1:next_idx]
+                    # Produit vectoriel pour avoir la distance de chaque point à la corde P1-P2
+                    d_array = np.abs((x2 - x1) * (yk - y1) - (xk - x1) * (y2 - y1)) / dist_seg
                     
+                    if np.any(d_array > intol):
+                        break # Un des points intermédiaires sort de la tolérance
+                        
                 best_valid = next_idx
                 next_idx += 1
                 
-            # Avancer au point validé
-            if best_valid == curr:
-                # Sécurité si intol est trop petit
-                curr += 1
-                kept_indices.append(curr)
-            else:
-                curr = best_valid
-                kept_indices.append(curr)
-                
-        # S'assurer que le profil est bien fermé
+            curr = best_valid
+            kept_indices.append(curr)
+            
+        # Forcer la fermeture exacte sur le dernier point
         if kept_indices[-1] != N - 1:
             kept_indices.append(N - 1)
             
@@ -198,6 +196,9 @@ class CaptoGeneratorApp:
 
     def update_data(self):
         try:
+            # Ajuster les limites du Scale si l'utilisateur change la longueur
+            self.z_scale.configure(to=-self.longueur_var.get())
+            
             target_z = self.z_visu_var.get()
             x, y, z, nx, ny, nz = self.calculate_profile(target_z)
             
@@ -212,22 +213,20 @@ class CaptoGeneratorApp:
 
             # Mise à jour graphique
             self.ax.clear()
-            # Affichage du profil brut en fond
             self.ax.plot(x, y, color='lightgray', linestyle='--', label=f"Points d'origine ({len(x)})")
-            # Affichage du profil filtré
             self.ax.plot(x_f, y_f, 'b-o', markersize=3, label=f"Profil filtré ({len(x_f)} pts)")
             
-            # Affichage des normales sur les points conservés
+            # Affichage allégé des normales
             self.ax.quiver(x_f, y_f, nx_f, ny_f, color='r', alpha=0.6, scale=15, label='Normales 3D (X,Y)')
 
             self.ax.plot(x_f[0], y_f[0], 'go', markersize=8, label="Point de départ")
             self.ax.set_aspect('equal')
             self.ax.grid(True, linestyle=':', alpha=0.7)
-            self.ax.set_title(f"Visualisation du filtrage à Z={target_z:.1f}mm\nRéduction: {len(x)} -> {len(x_f)} points")
+            self.ax.set_title(f"Profil à Z={target_z:.1f}mm | D1={self.d1_var.get()+2*abs(target_z)*np.tan(np.radians(self.angle_var.get())):.2f}mm\nRéduction: {len(x)} -> {len(x_f)} points")
             self.ax.legend(loc="upper right", fontsize="small")
             self.canvas.draw()
 
-            # Mise à jour du tableau avec les points filtrés uniquement
+            # Mise à jour du tableau
             self.tree.delete(*self.tree.get_children())
             for i, idx in enumerate(kept_indices):
                 row = (i, f"{x_f[i]:.4f}", f"{y_f[i]:.4f}", f"{z[idx]:.4f}", f"{nx_f[i]:.4f}", f"{ny_f[i]:.4f}", f"{nz_f[i]:.4f}")
@@ -238,6 +237,7 @@ class CaptoGeneratorApp:
 
     def generer_fichier(self):
         longueur = self.longueur_var.get()
+        # Génération des 11 profils répartis uniformément de 0 à -h
         z_levels = np.linspace(0, -longueur, 11)
         filename = "profils_capto_filtres.ascii"
         
@@ -245,18 +245,15 @@ class CaptoGeneratorApp:
             total_points = 0
             with open(filename, "w") as f:
                 for z_val in z_levels:
-                    # On calcule
                     x, y, z, nx, ny, nz = self.calculate_profile(z_val)
-                    # On filtre (Étape 4 appliquée à l'export !)
                     kept = self.filter_profile(x, y, nx, ny, nz)
                     
-                    # On exporte les points filtrés
                     for idx in kept:
-                        # Format classique X Y Z (ajuster si CATIA demande les normales dans ce fichier)
+                        # Format X Y Z Nx Ny Nz
                         f.write(f"{x[idx]:.6f} {y[idx]:.6f} {z[idx]:.6f} {nx[idx]:.6f} {ny[idx]:.6f} {nz[idx]:.6f}\n")
                         total_points += 1
             
-            messagebox.showinfo("Export réussi", f"Fichier généré !\n11 profils exportés.\nTotal points : {total_points}\nEnregistré sous : {filename}")
+            messagebox.showinfo("Export réussi", f"Fichier généré avec succès !\n11 profils exportés.\nTotal points conservés : {total_points}\nEnregistré sous : {filename}")
         except Exception as e:
             messagebox.showerror("Erreur d'export", f"Erreur pendant l'export : {e}")
 
