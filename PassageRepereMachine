@@ -1,0 +1,5 @@
+x'=(X*cos(C)+Y*sin(C))*cos(B)-Z*sin(B)
+y'=-X*sin(C)+Y*cos(C)
+z'=(X*cos(C)+Y*sin(C))*sin(B)+Z*cos(B)
+B=-Arcos(Nz)
+C=Arcos(Nx/sin(B))*sign(Ny/sinB)
