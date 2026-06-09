@@ -39,6 +39,19 @@ class CaptoGeneratorApp:
         self.type_export_var = tk.StringVar(value="piece")
         self.normale_export_var = tk.BooleanVar(value=True)
 
+        # Variables Heidenhain
+        self.heid_num_outil_var = tk.IntVar(value=108)
+        self.heid_vitesse_var = tk.IntVar(value=10000)
+        self.heid_avance_var = tk.IntVar(value=1400)
+        self.heid_blk_xmin_var = tk.DoubleVar(value=-30.0)
+        self.heid_blk_xmax_var = tk.DoubleVar(value=30.0)
+        self.heid_blk_ymin_var = tk.DoubleVar(value=-30.0)
+        self.heid_blk_ymax_var = tk.DoubleVar(value=30.0)
+        self.heid_blk_zmin_var = tk.DoubleVar(value=-50.0)
+        self.heid_blk_zmax_var = tk.DoubleVar(value=0.0)
+        self.heid_ret_x_var = tk.DoubleVar(value=-200.0)
+        self.heid_ret_y_var = tk.DoubleVar(value=225.0)
+
         self.create_widgets()
         self.update_data()
 
@@ -50,83 +63,122 @@ class CaptoGeneratorApp:
             widget.bind("<Return>", lambda event: self.update_data())
 
         # --- PARAMETRES GEOMETRIQUES ---
-        profil_frame = tk.LabelFrame(left_frame, text="Géométrie Profil (2D)", padx=10, pady=5)
-        profil_frame.pack(fill=tk.X, pady=(0, 5))
-        tk.Label(profil_frame, text="d1 (mm):").grid(row=0, column=0, sticky="w")
-        e1 = tk.Entry(profil_frame, textvariable=self.d1_var, width=10); e1.grid(row=0, column=1); bind_enter(e1)
-        tk.Label(profil_frame, text="e (Excentricité):").grid(row=1, column=0, sticky="w")
-        e2 = tk.Entry(profil_frame, textvariable=self.e_var, width=10); e2.grid(row=1, column=1); bind_enter(e2)
-        tk.Label(profil_frame, text="Points initiaux:").grid(row=2, column=0, sticky="w")
-        e3 = tk.Entry(profil_frame, textvariable=self.nb_pt_var, width=10); e3.grid(row=2, column=1); bind_enter(e3)
+        profil_frame = tk.LabelFrame(left_frame, text="Géométrie Profil (2D)", padx=5, pady=2)
+        profil_frame.pack(fill=tk.X, pady=(0, 3))
+        tk.Label(profil_frame, text="d1:").grid(row=0, column=0, sticky="w")
+        e1 = tk.Entry(profil_frame, textvariable=self.d1_var, width=8); e1.grid(row=0, column=1)
+        tk.Label(profil_frame, text="e:").grid(row=0, column=2, sticky="w", padx=(10, 0))
+        e2 = tk.Entry(profil_frame, textvariable=self.e_var, width=8); e2.grid(row=0, column=3)
+        tk.Label(profil_frame, text="Pts:").grid(row=0, column=4, sticky="w", padx=(10, 0))
+        e3 = tk.Entry(profil_frame, textvariable=self.nb_pt_var, width=8); e3.grid(row=0, column=5)
+        bind_enter(e1); bind_enter(e2); bind_enter(e3)
 
-        z_frame = tk.LabelFrame(left_frame, text="Volume & Dépouille (3D)", padx=10, pady=5)
-        z_frame.pack(fill=tk.X, pady=(0, 5))
-        tk.Label(z_frame, text="Angle Dépouille (°):").grid(row=0, column=0, sticky="w")
-        e4 = tk.Entry(z_frame, textvariable=self.angle_var, width=10); e4.grid(row=0, column=1); bind_enter(e4)
-        tk.Label(z_frame, text="Hauteur h (mm):").grid(row=1, column=0, sticky="w")
-        e5 = tk.Entry(z_frame, textvariable=self.longueur_var, width=10); e5.grid(row=1, column=1); bind_enter(e5)
+        z_frame = tk.LabelFrame(left_frame, text="Volume & Dépouille (3D)", padx=5, pady=2)
+        z_frame.pack(fill=tk.X, pady=(0, 3))
+        tk.Label(z_frame, text="Angle (°):").grid(row=0, column=0, sticky="w")
+        e4 = tk.Entry(z_frame, textvariable=self.angle_var, width=8); e4.grid(row=0, column=1)
+        tk.Label(z_frame, text="Hauteur:").grid(row=0, column=2, sticky="w", padx=(10, 0))
+        e5 = tk.Entry(z_frame, textvariable=self.longueur_var, width=8); e5.grid(row=0, column=3)
+        bind_enter(e4); bind_enter(e5)
 
-        outil_frame = tk.LabelFrame(left_frame, text="Outil & Passes (Étape 5 & 6)", padx=10, pady=5)
-        outil_frame.pack(fill=tk.X, pady=(0, 5))
-        tk.Label(outil_frame, text="Diamètre Outil (mm):").grid(row=0, column=0, sticky="w")
-        e6 = tk.Entry(outil_frame, textvariable=self.diam_outil_var, width=10); e6.grid(row=0, column=1); bind_enter(e6)
-        tk.Label(outil_frame, text="Step-down (% D):").grid(row=1, column=0, sticky="w")
-        e_step = tk.Entry(outil_frame, textvariable=self.step_down_ratio_var, width=10); e_step.grid(row=1, column=1); bind_enter(e_step)
+        outil_frame = tk.LabelFrame(left_frame, text="Outil & Passes", padx=5, pady=2)
+        outil_frame.pack(fill=tk.X, pady=(0, 3))
+        tk.Label(outil_frame, text="Diam:").grid(row=0, column=0, sticky="w")
+        e6 = tk.Entry(outil_frame, textvariable=self.diam_outil_var, width=8); e6.grid(row=0, column=1)
+        tk.Label(outil_frame, text="Step%:").grid(row=0, column=2, sticky="w", padx=(10, 0))
+        e_step = tk.Entry(outil_frame, textvariable=self.step_down_ratio_var, width=8); e_step.grid(row=0, column=3)
+        bind_enter(e6); bind_enter(e_step)
 
-        app_frame = tk.LabelFrame(outil_frame, text="Approche", padx=5, pady=3)
-        app_frame.grid(row=2, column=0, columnspan=2, sticky="we", pady=(5, 0))
-        tk.Label(app_frame, text="Dist. tangente (mm):").grid(row=0, column=0, sticky="w")
-        ea1 = tk.Entry(app_frame, textvariable=self.dist_tang_app_var, width=10); ea1.grid(row=0, column=1); bind_enter(ea1)
-        tk.Label(app_frame, text="Dist. normale (mm):").grid(row=1, column=0, sticky="w")
-        ea2 = tk.Entry(app_frame, textvariable=self.dist_norm_app_var, width=10); ea2.grid(row=1, column=1); bind_enter(ea2)
+        app_ret_frame = tk.Frame(outil_frame)
+        app_ret_frame.grid(row=1, column=0, columnspan=4, sticky="we", pady=(3, 0))
+        tk.Label(app_ret_frame, text="App tang:").grid(row=0, column=0, sticky="w")
+        ea1 = tk.Entry(app_ret_frame, textvariable=self.dist_tang_app_var, width=7); ea1.grid(row=0, column=1)
+        tk.Label(app_ret_frame, text="norm:").grid(row=0, column=2, sticky="w", padx=(5, 0))
+        ea2 = tk.Entry(app_ret_frame, textvariable=self.dist_norm_app_var, width=7); ea2.grid(row=0, column=3)
+        tk.Label(app_ret_frame, text="Ret tang:").grid(row=0, column=4, sticky="w", padx=(10, 0))
+        er1 = tk.Entry(app_ret_frame, textvariable=self.dist_tang_ret_var, width=7); er1.grid(row=0, column=5)
+        tk.Label(app_ret_frame, text="norm:").grid(row=0, column=6, sticky="w", padx=(5, 0))
+        er2 = tk.Entry(app_ret_frame, textvariable=self.dist_norm_ret_var, width=7); er2.grid(row=0, column=7)
+        bind_enter(ea1); bind_enter(ea2); bind_enter(er1); bind_enter(er2)
 
-        ret_frame = tk.LabelFrame(outil_frame, text="Retrait", padx=5, pady=3)
-        ret_frame.grid(row=3, column=0, columnspan=2, sticky="we", pady=(5, 0))
-        tk.Label(ret_frame, text="Dist. tangente (mm):").grid(row=0, column=0, sticky="w")
-        er1 = tk.Entry(ret_frame, textvariable=self.dist_tang_ret_var, width=10); er1.grid(row=0, column=1); bind_enter(er1)
-        tk.Label(ret_frame, text="Dist. normale (mm):").grid(row=1, column=0, sticky="w")
-        er2 = tk.Entry(ret_frame, textvariable=self.dist_norm_ret_var, width=10); er2.grid(row=1, column=1); bind_enter(er2)
+        tk.Label(outil_frame, text="Pts tang:").grid(row=2, column=0, sticky="w", pady=(3, 0))
+        ep = tk.Entry(outil_frame, textvariable=self.nb_pts_tang_var, width=7); ep.grid(row=2, column=1, pady=(3, 0))
+        tk.Label(outil_frame, text="Pts norm:").grid(row=2, column=2, sticky="w", padx=(10, 0), pady=(3, 0))
+        en = tk.Entry(outil_frame, textvariable=self.nb_pts_norm_var, width=7); en.grid(row=2, column=3, pady=(3, 0))
+        bind_enter(ep); bind_enter(en)
 
-        tk.Label(outil_frame, text="Pts tangente:").grid(row=4, column=0, sticky="w", pady=(5, 0))
-        ep = tk.Entry(outil_frame, textvariable=self.nb_pts_tang_var, width=10); ep.grid(row=4, column=1, pady=(5, 0)); bind_enter(ep)
-        tk.Label(outil_frame, text="Pts normale:").grid(row=4, column=2, sticky="w", padx=(10, 0), pady=(5, 0))
-        en = tk.Entry(outil_frame, textvariable=self.nb_pts_norm_var, width=10); en.grid(row=4, column=3, pady=(5, 0)); bind_enter(en)
-
-        filtre_frame = tk.LabelFrame(left_frame, text="Filtrage & Tolérances (Étape 4)", padx=10, pady=5)
-        filtre_frame.pack(fill=tk.X, pady=(0, 5))
-        tk.Label(filtre_frame, text="Tol. Corde (mm):").grid(row=0, column=0, sticky="w")
-        e8 = tk.Entry(filtre_frame, textvariable=self.corde_var, width=10); e8.grid(row=0, column=1); bind_enter(e8)
-        tk.Label(filtre_frame, text="Tol. Angle (°):").grid(row=1, column=0, sticky="w")
-        e9 = tk.Entry(filtre_frame, textvariable=self.tol_ang_var, width=10); e9.grid(row=1, column=1); bind_enter(e9)
-        self.lbl_info_filtre = tk.Label(filtre_frame, text="Points conservés : - / -", fg="#d32f2f", font=("Arial", 9, "bold"))
-        self.lbl_info_filtre.grid(row=2, column=0, columnspan=2, pady=5)
+        filtre_frame = tk.LabelFrame(left_frame, text="Filtrage", padx=5, pady=2)
+        filtre_frame.pack(fill=tk.X, pady=(0, 3))
+        tk.Label(filtre_frame, text="Corde:").grid(row=0, column=0, sticky="w")
+        e8 = tk.Entry(filtre_frame, textvariable=self.corde_var, width=8); e8.grid(row=0, column=1)
+        tk.Label(filtre_frame, text="Angle:").grid(row=0, column=2, sticky="w", padx=(10, 0))
+        e9 = tk.Entry(filtre_frame, textvariable=self.tol_ang_var, width=8); e9.grid(row=0, column=3)
+        self.lbl_info_filtre = tk.Label(filtre_frame, text="Pts: - / -", fg="#d32f2f", font=("Arial", 8, "bold"))
+        self.lbl_info_filtre.grid(row=0, column=4, padx=(10, 0))
+        bind_enter(e8); bind_enter(e9)
 
         # --- ACTIONS & EXPORT ---
-        action_frame = tk.Frame(left_frame, pady=5)
+        action_frame = tk.Frame(left_frame, pady=2)
         action_frame.pack(fill=tk.X)
-        tk.Label(action_frame, text="Aperçu plan Z:").grid(row=0, column=0, sticky="w")
-        self.z_scale = tk.Scale(action_frame, variable=self.z_visu_var, from_=0, to=-self.longueur_var.get(), 
+        tk.Label(action_frame, text="Z:").grid(row=0, column=0, sticky="w")
+        self.z_scale = tk.Scale(action_frame, variable=self.z_visu_var, from_=0, to=-self.longueur_var.get(),
                                 resolution=0.01, orient=tk.HORIZONTAL, command=self._on_z_scale_change)
         self.z_scale.grid(row=0, column=1, sticky="ew")
-        tk.Checkbutton(action_frame, text="Vue 3D", variable=self.visu_3d_var, command=self.update_data).grid(row=0, column=2, padx=5)
-        tk.Button(action_frame, text="Actualiser Visuel", command=self.update_data, bg="#2196F3", fg="white").grid(row=1, columnspan=3, pady=5, sticky="we")
+        tk.Checkbutton(action_frame, text="3D", variable=self.visu_3d_var, command=self.update_data).grid(row=0, column=2, padx=3)
+        tk.Button(action_frame, text="Actualiser", command=self.update_data, bg="#2196F3", fg="white", font=("Arial", 8)).grid(row=0, column=3, padx=3)
 
-        tool_viz_frame = tk.LabelFrame(left_frame, text="Visualisation Outil", padx=10, pady=5)
-        tool_viz_frame.pack(fill=tk.X, pady=(0, 5))
-        tk.Label(tool_viz_frame, text="Position outil:").grid(row=0, column=0, sticky="w")
-        self.lbl_tool_pos = tk.Label(tool_viz_frame, text="0 / 0", fg="#d32f2f", font=("Arial", 9, "bold"))
+        tool_viz_frame = tk.LabelFrame(left_frame, text="Outil", padx=5, pady=2)
+        tool_viz_frame.pack(fill=tk.X, pady=(0, 3))
+        tk.Label(tool_viz_frame, text="Pos:").grid(row=0, column=0, sticky="w")
+        self.lbl_tool_pos = tk.Label(tool_viz_frame, text="0 / 0", fg="#d32f2f", font=("Arial", 8, "bold"))
         self.lbl_tool_pos.grid(row=0, column=1, padx=5)
         self.tool_scale = tk.Scale(tool_viz_frame, variable=self.tool_pos_idx_var, from_=0, to=0,
                                    resolution=1, orient=tk.HORIZONTAL, command=self._on_tool_pos_change)
         self.tool_scale.grid(row=0, column=2, sticky="ew")
 
-        export_frame = tk.LabelFrame(left_frame, text="Exportation", padx=10, pady=5)
-        export_frame.pack(fill=tk.X, pady=(0, 5))
-        tk.Radiobutton(export_frame, text="Profil Pièce brut (CATIA)", variable=self.type_export_var, value="piece").grid(row=0, column=0, sticky="w")
-        tk.Radiobutton(export_frame, text="Trajectoire Outil (Usinage)", variable=self.type_export_var, value="outil").grid(row=1, column=0, sticky="w")
-        tk.Checkbutton(export_frame, text="Inclure Normales (6 colonnes)", variable=self.normale_export_var).grid(row=2, column=0, sticky="w", pady=(5,0))
-        tk.Button(export_frame, text="Générer Fichier ASCII", command=self.generer_fichier_ui, bg="#FF9800", fg="white", font=("Arial", 9, "bold")).grid(row=3, column=0, pady=(10, 5), sticky="we")
-        tk.Button(export_frame, text="Générer Fichier APT (CATIA)", command=self.generer_fichier_apt, bg="#9C27B0", fg="white", font=("Arial", 9, "bold")).grid(row=4, column=0, pady=(0, 10), sticky="we")
+        export_frame = tk.LabelFrame(left_frame, text="Exportation", padx=5, pady=2)
+        export_frame.pack(fill=tk.X, pady=(0, 3))
+        tk.Radiobutton(export_frame, text="Profil Pièce", variable=self.type_export_var, value="piece").grid(row=0, column=0, sticky="w")
+        tk.Radiobutton(export_frame, text="Trajectoire Outil", variable=self.type_export_var, value="outil").grid(row=0, column=1, sticky="w")
+        tk.Checkbutton(export_frame, text="Normales", variable=self.normale_export_var).grid(row=0, column=2, sticky="w", padx=(10, 0))
+        tk.Button(export_frame, text="ASCII", command=self.generer_fichier_ui, bg="#FF9800", fg="white", font=("Arial", 8, "bold")).grid(row=0, column=3, padx=(10, 0))
+        tk.Button(export_frame, text="APT", command=self.generer_fichier_apt, bg="#9C27B0", fg="white", font=("Arial", 8, "bold")).grid(row=0, column=4, padx=(3, 0))
+
+        heid_frame = tk.LabelFrame(left_frame, text="Paramètres Heidenhain", padx=5, pady=2)
+        heid_frame.pack(fill=tk.X, pady=(0, 5))
+
+        heid_canvas = tk.Canvas(heid_frame, height=80, highlightthickness=0)
+        heid_scroll = ttk.Scrollbar(heid_frame, orient="vertical", command=heid_canvas.yview)
+        heid_inner = tk.Frame(heid_canvas)
+        heid_inner.bind("<Configure>", lambda e: heid_canvas.configure(scrollregion=heid_canvas.bbox("all")))
+        heid_canvas.create_window((0, 0), window=heid_inner, anchor="nw")
+        heid_canvas.configure(yscrollcommand=heid_scroll.set)
+        heid_canvas.pack(side="left", fill="x", expand=True)
+        heid_scroll.pack(side="right", fill="y")
+
+        tk.Label(heid_inner, text="N° Outil:").grid(row=0, column=0, sticky="w")
+        tk.Entry(heid_inner, textvariable=self.heid_num_outil_var, width=6).grid(row=0, column=1, sticky="w", padx=(5, 10))
+        tk.Label(heid_inner, text="Vitesse (RPM):").grid(row=0, column=2, sticky="w")
+        tk.Entry(heid_inner, textvariable=self.heid_vitesse_var, width=7).grid(row=0, column=3, sticky="w", padx=(5, 0))
+        tk.Label(heid_inner, text="Avance F:").grid(row=1, column=0, sticky="w")
+        tk.Entry(heid_inner, textvariable=self.heid_avance_var, width=6).grid(row=1, column=1, sticky="w", padx=(5, 10))
+        tk.Label(heid_inner, text="BLK X:").grid(row=2, column=0, sticky="w")
+        tk.Entry(heid_inner, textvariable=self.heid_blk_xmin_var, width=6).grid(row=2, column=1, sticky="w")
+        tk.Label(heid_inner, text="→").grid(row=2, column=2, sticky="w")
+        tk.Entry(heid_inner, textvariable=self.heid_blk_xmax_var, width=6).grid(row=2, column=3, sticky="w")
+        tk.Label(heid_inner, text="Y:").grid(row=3, column=0, sticky="w")
+        tk.Entry(heid_inner, textvariable=self.heid_blk_ymin_var, width=6).grid(row=3, column=1, sticky="w")
+        tk.Label(heid_inner, text="→").grid(row=3, column=2, sticky="w")
+        tk.Entry(heid_inner, textvariable=self.heid_blk_ymax_var, width=6).grid(row=3, column=3, sticky="w")
+        tk.Label(heid_inner, text="Z:").grid(row=4, column=0, sticky="w")
+        tk.Entry(heid_inner, textvariable=self.heid_blk_zmin_var, width=6).grid(row=4, column=1, sticky="w")
+        tk.Label(heid_inner, text="→").grid(row=4, column=2, sticky="w")
+        tk.Entry(heid_inner, textvariable=self.heid_blk_zmax_var, width=6).grid(row=4, column=3, sticky="w")
+        tk.Label(heid_inner, text="Retrait X:").grid(row=5, column=0, sticky="w")
+        tk.Entry(heid_inner, textvariable=self.heid_ret_x_var, width=6).grid(row=5, column=1, sticky="w", padx=(5, 10))
+        tk.Label(heid_inner, text="Y:").grid(row=5, column=2, sticky="w")
+        tk.Entry(heid_inner, textvariable=self.heid_ret_y_var, width=6).grid(row=5, column=3, sticky="w")
+        tk.Button(heid_inner, text="Générer Fichier Heidenhain (.H)", command=self.generer_fichier_heidenhain, bg="#4CAF50", fg="white", font=("Arial", 9, "bold")).grid(row=6, column=0, columnspan=4, pady=(10, 5), sticky="we")
 
         # --- TABLEAU ---
         table_frame = tk.LabelFrame(left_frame, text="Données (Trajectoire Outil Affichée)")
@@ -190,25 +242,26 @@ class CaptoGeneratorApp:
         y = (d1_z / 2 - e_z * np.cos(3 * a)) * np.sin(a) + 3 * e_z * np.sin(3 * a) * np.cos(a)
         z = np.full_like(x, target_z)
 
-        dx = np.gradient(x)
-        dy = np.gradient(y)
-        norm_2d = np.hypot(dx, dy)
+        dx_da = -(d1_z / 2) * np.sin(a) - 8 * e_z * np.cos(3 * a) * np.sin(a)
+        dy_da = (d1_z / 2) * np.cos(a) + 8 * e_z * np.cos(3 * a) * np.cos(a)
+        norm_2d = np.hypot(dx_da, dy_da)
         
-        nx_2d = dy / norm_2d
-        ny_2d = -dx / norm_2d
+        tx_2d = dx_da / norm_2d
+        ty_2d = dy_da / norm_2d
+
+        nx_2d = dy_da / norm_2d
+        ny_2d = -dx_da / norm_2d
 
         nx_3d = nx_2d * np.cos(angle_depouille)
         ny_3d = ny_2d * np.cos(angle_depouille)
         nz_3d = np.full_like(nx_2d, np.sin(angle_depouille))
 
         R = self.diam_outil_var.get() / 2.0
-        tx_2d = dx / norm_2d
-        ty_2d = dy / norm_2d
         xc = x - R * tx_2d
         yc = y - R * ty_2d
         zc = z.copy()
 
-        return x, y, z, nx_3d, ny_3d, nz_3d, xc, yc, zc
+        return x, y, z, nx_3d, ny_3d, nz_3d, xc, yc, zc, tx_2d, ty_2d
 
     def filter_profile(self, x, y, nx, ny, nz):
         intol = self.corde_var.get()
@@ -255,18 +308,13 @@ class CaptoGeneratorApp:
         num_passes = max(2, int(np.ceil(longueur / step)) + 1)
         return np.linspace(0, -longueur, num_passes)
 
-    def add_approach_retract(self, xc_f, yc_f, zc_f, nx_f, ny_f):
+    def add_approach_retract(self, xc_f, yc_f, zc_f, nx_f, ny_f, tx_start, ty_start, tx_end, ty_end):
         dist_tang_app = self.dist_tang_app_var.get()
         dist_norm_app = self.dist_norm_app_var.get()
         dist_tang_ret = self.dist_tang_ret_var.get()
         dist_norm_ret = self.dist_norm_ret_var.get()
         nb_pts_tang = self.nb_pts_tang_var.get()
         nb_pts_norm = self.nb_pts_norm_var.get()
-
-        tx_start = xc_f[1] - xc_f[0]
-        ty_start = yc_f[1] - yc_f[0]
-        norm_start = np.hypot(tx_start, ty_start)
-        tx_start, ty_start = tx_start / norm_start, ty_start / norm_start
 
         nx_out_start = nx_f[0]
         ny_out_start = ny_f[0]
@@ -286,11 +334,6 @@ class CaptoGeneratorApp:
         app_tang_x = x_tang_start + (xc_f[0] - x_tang_start) * t2
         app_tang_y = y_tang_start + (yc_f[0] - y_tang_start) * t2
         app_tang_z = np.full(nb_pts_tang, zc_f[0])
-
-        tx_end = xc_f[-1] - xc_f[-2]
-        ty_end = yc_f[-1] - yc_f[-2]
-        norm_end = np.hypot(tx_end, ty_end)
-        tx_end, ty_end = tx_end / norm_end, ty_end / norm_end
 
         nx_out_end = nx_f[-1]
         ny_out_end = ny_f[-1]
@@ -319,7 +362,7 @@ class CaptoGeneratorApp:
             target_z = self.snap_to_z_level(self.z_visu_var.get())
             self.z_visu_var.set(target_z)
             
-            x, y, z, nx, ny, nz, xc, yc, zc = self.calculate_profile(target_z)
+            x, y, z, nx, ny, nz, xc, yc, zc, tx, ty = self.calculate_profile(target_z)
             kept = self.filter_profile(x, y, nx, ny, nz)
             
             self.lbl_info_filtre.config(text=f"Points conservés : {len(kept)} / {len(x)}")
@@ -327,6 +370,7 @@ class CaptoGeneratorApp:
             x_f, y_f, z_f = x[kept], y[kept], z[kept]
             xc_f, yc_f, zc_f = xc[kept], yc[kept], zc[kept]
             nx_f, ny_f, nz_f = nx[kept], ny[kept], nz[kept]
+            tx_f, ty_f = tx[kept], ty[kept]
 
             max_idx = max(0, len(kept) - 1)
             self.tool_scale.configure(to=max_idx)
@@ -334,7 +378,7 @@ class CaptoGeneratorApp:
             self.tool_pos_idx_var.set(tool_idx)
             self.lbl_tool_pos.config(text=f"{tool_idx} / {max_idx}")
 
-            app_x, app_y, app_z, app_tang_x, app_tang_y, app_tang_z, ret_tang_x, ret_tang_y, ret_tang_z, ret_x, ret_y, ret_z = self.add_approach_retract(xc_f, yc_f, zc_f, nx_f, ny_f)
+            app_x, app_y, app_z, app_tang_x, app_tang_y, app_tang_z, ret_tang_x, ret_tang_y, ret_tang_z, ret_x, ret_y, ret_z = self.add_approach_retract(xc_f, yc_f, zc_f, nx_f, ny_f, tx_f[0], ty_f[0], tx_f[-1], ty_f[-1])
 
             self.tree.delete(*self.tree.get_children())
             self.tree.insert("", tk.END, values=(f"APPR NORMALE ({len(app_x)})", f"{app_x[0]:.3f}", f"{app_y[0]:.3f}", f"{app_z[0]:.3f}", f"{nx_f[0]:.3f}", f"{ny_f[0]:.3f}", f"{nz_f[0]:.3f}"))
@@ -407,7 +451,7 @@ class CaptoGeneratorApp:
         all_xf, all_yf, all_zf = [], [], []
 
         for zv in z_levels:
-            xv, yv, zv_arr, nxv, nyv, nzv, xcv, ycv, zcv = self.calculate_profile(zv)
+            xv, yv, zv_arr, nxv, nyv, nzv, xcv, ycv, zcv, txv, tyv = self.calculate_profile(zv)
             kept_v = self.filter_profile(xv, yv, nxv, nyv, nzv)
             all_xc.extend(xcv[kept_v])
             all_yc.extend(ycv[kept_v])
@@ -461,7 +505,7 @@ class CaptoGeneratorApp:
             total_points = 0
             with open(filename, "w") as f:
                 for z_val in z_levels:
-                    x, y, z, nx, ny, nz, xc, yc, zc = self.calculate_profile(z_val)
+                    x, y, z, nx, ny, nz, xc, yc, zc, tx, ty = self.calculate_profile(z_val)
                     kept = self.filter_profile(x, y, nx, ny, nz)
                     
                     if mode == "piece":
@@ -482,7 +526,8 @@ class CaptoGeneratorApp:
                     elif mode == "outil":
                         xc_f, yc_f, zc_f = xc[kept], yc[kept], zc[kept]
                         nx_f, ny_f, nz_f = nx[kept], ny[kept], nz[kept]
-                        app_x, app_y, app_z, app_tang_x, app_tang_y, app_tang_z, ret_tang_x, ret_tang_y, ret_tang_z, ret_x, ret_y, ret_z = self.add_approach_retract(xc_f, yc_f, zc_f, nx_f, ny_f)
+                        tx_f, ty_f = tx[kept], ty[kept]
+                        app_x, app_y, app_z, app_tang_x, app_tang_y, app_tang_z, ret_tang_x, ret_tang_y, ret_tang_z, ret_x, ret_y, ret_z = self.add_approach_retract(xc_f, yc_f, zc_f, nx_f, ny_f, tx_f[0], ty_f[0], tx_f[-1], ty_f[-1])
 
                         for idx in range(len(app_x)):
                             if avec_normales:
@@ -530,6 +575,16 @@ class CaptoGeneratorApp:
         except Exception as e:
             messagebox.showerror("Erreur", f"Échec lors de l'écriture : {e}")
 
+    def _normals_to_bc(self, nx, ny, nz):
+        B = -np.arccos(np.clip(nz, -1.0, 1.0))
+        sin_B = np.sin(B)
+        if np.abs(sin_B) < 1e-10:
+            C = 0.0
+        else:
+            ratio = np.clip(nx / sin_B, -1.0, 1.0)
+            C = np.arccos(ratio) * np.sign(nz / sin_B)
+        return np.degrees(B), np.degrees(C)
+
     def generer_fichier_apt(self):
         z_levels = self.get_z_levels()
         filename = "trajectoire_outil.APT"
@@ -544,11 +599,12 @@ class CaptoGeneratorApp:
                 f.write("SPINDL/ 5000, RPM, CLW\n")
 
                 for z_idx, z_val in enumerate(z_levels):
-                    x, y, z, nx, ny, nz, xc, yc, zc = self.calculate_profile(z_val)
+                    x, y, z, nx, ny, nz, xc, yc, zc, tx, ty = self.calculate_profile(z_val)
                     kept = self.filter_profile(x, y, nx, ny, nz)
                     xc_f, yc_f, zc_f = xc[kept], yc[kept], zc[kept]
                     nx_f, ny_f, nz_f = nx[kept], ny[kept], nz[kept]
-                    app_x, app_y, app_z, app_tang_x, app_tang_y, app_tang_z, ret_tang_x, ret_tang_y, ret_tang_z, ret_x, ret_y, ret_z = self.add_approach_retract(xc_f, yc_f, zc_f, nx_f, ny_f)
+                    tx_f, ty_f = tx[kept], ty[kept]
+                    app_x, app_y, app_z, app_tang_x, app_tang_y, app_tang_z, ret_tang_x, ret_tang_y, ret_tang_z, ret_x, ret_y, ret_z = self.add_approach_retract(xc_f, yc_f, zc_f, nx_f, ny_f, tx_f[0], ty_f[0], tx_f[-1], ty_f[-1])
 
                     f.write(f"$$ Passe Z {z_idx + 1}/{len(z_levels)} : Z = {z_val:.3f} mm\n")
                     f.write("RAPID\n")
@@ -581,6 +637,119 @@ class CaptoGeneratorApp:
 
         except Exception as e:
             messagebox.showerror("Erreur", f"Échec lors de l'écriture APT : {e}")
+
+    def _to_machine_coords(self, x, y, z, B_deg, C_deg):
+        B = np.radians(B_deg)
+        C = np.radians(C_deg)
+        x_prime = (x * np.cos(C) + y * np.sin(C)) - z * np.sin(B)
+        y_prime = -x * np.sin(C) + y * np.cos(C)
+        z_prime = (x * np.cos(C) + y * np.sin(C)) * np.sin(B) + z * np.cos(B)
+        return x_prime, y_prime, z_prime
+
+    def generer_fichier_heidenhain(self):
+        from datetime import datetime
+        z_levels = self.get_z_levels()
+        today = datetime.now().strftime("%d/%m/%Y")
+        filename = f"Capto_{datetime.now().strftime('%d%m%Y')}.H"
+
+        num_outil = self.heid_num_outil_var.get()
+        vitesse = self.heid_vitesse_var.get()
+        avance = self.heid_avance_var.get()
+        xmin = self.heid_blk_xmin_var.get()
+        xmax = self.heid_blk_xmax_var.get()
+        ymin = self.heid_blk_ymin_var.get()
+        ymax = self.heid_blk_ymax_var.get()
+        zmin = self.heid_blk_zmin_var.get()
+        zmax = self.heid_blk_zmax_var.get()
+        ret_x = self.heid_ret_x_var.get()
+        ret_y = self.heid_ret_y_var.get()
+
+        try:
+            all_points = []
+            total_points = 0
+
+            for z_idx, z_val in enumerate(z_levels):
+                x, y, z, nx, ny, nz, xc, yc, zc, tx, ty = self.calculate_profile(z_val)
+                kept = self.filter_profile(x, y, nx, ny, nz)
+                xc_f, yc_f, zc_f = xc[kept], yc[kept], zc[kept]
+                nx_f, ny_f, nz_f = nx[kept], ny[kept], nz[kept]
+                tx_f, ty_f = tx[kept], ty[kept]
+                app_x, app_y, app_z, app_tang_x, app_tang_y, app_tang_z, ret_tang_x, ret_tang_y, ret_tang_z, ret_x_arr, ret_y_arr, ret_z_arr = self.add_approach_retract(xc_f, yc_f, zc_f, nx_f, ny_f, tx_f[0], ty_f[0], tx_f[-1], ty_f[-1])
+
+                all_points.append(("comment", f"; Passe Z {z_idx + 1}/{len(z_levels)} : Z = {z_val:.3f} mm"))
+
+                for idx in range(len(app_x)):
+                    B, C = self._normals_to_bc(nx_f[0], ny_f[0], nz_f[0])
+                    xp, yp, zp = self._to_machine_coords(app_x[idx], app_y[idx], app_z[idx], B, C)
+                    all_points.append(("data", xp, yp, zp, B, C))
+                    total_points += 1
+
+                for idx in range(len(app_tang_x)):
+                    B, C = self._normals_to_bc(nx_f[0], ny_f[0], nz_f[0])
+                    xp, yp, zp = self._to_machine_coords(app_tang_x[idx], app_tang_y[idx], app_tang_z[idx], B, C)
+                    all_points.append(("data", xp, yp, zp, B, C))
+                    total_points += 1
+
+                for idx in range(len(kept)):
+                    B, C = self._normals_to_bc(nx_f[idx], ny_f[idx], nz_f[idx])
+                    xp, yp, zp = self._to_machine_coords(xc_f[idx], yc_f[idx], zc_f[idx], B, C)
+                    all_points.append(("data", xp, yp, zp, B, C))
+                    total_points += 1
+
+                for idx in range(len(ret_tang_x)):
+                    B, C = self._normals_to_bc(nx_f[-1], ny_f[-1], nz_f[-1])
+                    xp, yp, zp = self._to_machine_coords(ret_tang_x[idx], ret_tang_y[idx], ret_tang_z[idx], B, C)
+                    all_points.append(("data", xp, yp, zp, B, C))
+                    total_points += 1
+
+                for idx in range(len(ret_x_arr)):
+                    B, C = self._normals_to_bc(nx_f[-1], ny_f[-1], nz_f[-1])
+                    xp, yp, zp = self._to_machine_coords(ret_x_arr[idx], ret_y_arr[idx], ret_z_arr[idx], B, C)
+                    all_points.append(("data", xp, yp, zp, B, C))
+                    total_points += 1
+
+            with open(filename, "w") as f:
+                f.write(f"BEGIN PGM Capto MM\n")
+                f.write(f";postprocesse le {today}\n")
+                f.write(f"BLK FORM 0.1 Z X{xmin} Y{ymin} Z{zmin}\n")
+                f.write(f"BLK FORM 0.2 X{xmax} Y{ymax} Z{zmax}\n")
+                f.write(";\n")
+                f.write("FN 18: SYSREAD Q30 = ID230 NR3 IDX3\n")
+                f.write("L ZQ30 R0 FMAX M91\n")
+                f.write("M129\n")
+                f.write("PLANE RESET TURN FMAX\n")
+                f.write(f"TOOL CALL {num_outil} Z S{vitesse} F{avance}\n")
+                f.write(f"TOOL CALL S{vitesse}\n")
+                f.write("M3 M8\n")
+                f.write("M126\n")
+
+                first = all_points[1]
+                f.write(f"L X{first[1]:.3f} Y{first[2]:.3f} R0 FMAX\n")
+                f.write(f"L B{first[4]:.3f} C{first[5]:.3f} F{avance}\n")
+                f.write("M114\n")
+
+                for pt in all_points:
+                    if pt[0] == "comment":
+                        f.write(f"{pt[1]}\n")
+                    else:
+                        f.write(f"L X{pt[1]:.3f} Y{pt[2]:.3f} Z{pt[3]:.3f} B{pt[4]:.3f} C{pt[5]:.3f}\n")
+
+                f.write("M127 M115\n")
+                f.write("M9\n")
+                f.write("L M140 MB MAX\n")
+                f.write("M5\n")
+                f.write("M129\n")
+                f.write(f"L Y{ret_y:.3f} FMAX M92\n")
+                f.write("PLANE RESET TURN FMAX\n")
+                f.write(f"L X{ret_x:.3f} FMAX M92\n")
+                f.write("M10 M15\n")
+                f.write("M2\n")
+                f.write("END PGM\n")
+
+            messagebox.showinfo("Exportation Heidenhain Terminée", f"Fichier '{filename}' généré avec succès.\nTotal : {total_points} points sur {len(z_levels)} passes Z.")
+
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Échec lors de l'écriture Heidenhain : {e}")
 
 if __name__ == "__main__":
     root = tk.Tk()
